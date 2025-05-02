@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "nfc-water-card-editor",
+    "name": "水卡编辑器",
     "slug": "nfc-water-card-editor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/splash-icon.png",
     "scheme": "nfcwatercardeditor",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,14 +14,15 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "monochromeImage": "./assets/images/monochrome-icon.png",
+        "backgroundColor": "#EDEDF4"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.nfcwatercardeditor"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
@@ -29,11 +30,16 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
+          "backgroundColor": "#EDEDF4",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#1D2024"
+          },
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "resizeMode": "contain"
         }
-      ]
+      ],
+      "react-native-nfc-manager"
     ],
     "experiments": {
       "typedRoutes": true
