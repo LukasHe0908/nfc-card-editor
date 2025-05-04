@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 
 // Pre-step, call this before any NFC operations
 NfcManager.start();
@@ -26,8 +27,8 @@ export default function Home(props: any) {
           console.log('Tag found', tag);
           setTagInfo(tag); // 设置读取到的数据
         } catch (ex: any) {
-          if (ex.includes('TypeError')) isActive = false;
-          console.log('Scan failed or cancelled', ex);
+          if (ex.toString().includes('TypeError')) isActive = false;
+          console.log('Scan failed or cancelled', ex.toString());
         } finally {
           await NfcManager.cancelTechnologyRequest();
         }
@@ -51,9 +52,9 @@ export default function Home(props: any) {
         <TouchableRipple
           onPress={() => {
             setTimeout(() => {
-              if(props.setIndex){
+              if (props.setIndex) {
                 props.setIndex(3);
-              }else{
+              } else {
                 alert('Missing setIndex prop!');
               }
             }, 100);
@@ -100,13 +101,20 @@ export default function Home(props: any) {
         <Button mode='contained-tonal' onPress={() => router.push('/home/home')} style={{ marginTop: 20 }}>
           Test: To This Page
         </Button>
+        <Button
+          onPress={() => {
+            Sentry.captureException(new Error('First error'));
+          }}
+          style={{ marginTop: 20 }}>
+          Try report!
+        </Button>
         <Text
           style={{
             textAlign: 'center',
             fontSize: 12,
             color: '#888',
             paddingVertical: 40,
-          }}>{`Beta 1.0.0    水卡修改器\nPowered By DeepSeek`}</Text>
+          }}>{`Alpha 1.0.0\n注意：Alpha版本仅用于测试。\n您的使用数据将会发送至Sentry，这将帮助我们更好地提供服务。`}</Text>
       </ScrollView>
     </View>
   );
