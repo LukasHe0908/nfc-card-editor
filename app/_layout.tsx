@@ -22,27 +22,16 @@ Sentry.init({
 SplashScreen.preventAutoHideAsync();
 
 export default Sentry.wrap(function RootLayout() {
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
   const colorScheme = useColorScheme();
   const { theme } = useMaterial3Theme();
   const paperTheme = colorScheme === 'dark' ? { ...MD3DarkTheme, colors: theme.dark } : { ...MD3LightTheme, colors: theme.light };
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  SplashScreen.hideAsync();
 
   return (
     <PaperProvider theme={paperTheme}>
       <Stack
-        initialRouteName='home'
+        // initialRouteName='home'
         screenOptions={{
           headerShown: false,
         }}></Stack>
