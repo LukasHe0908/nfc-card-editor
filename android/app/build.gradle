@@ -83,17 +83,26 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
     ndkVersion rootProject.ext.ndkVersion
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            universalApk true
+        }
+    }
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.nfcwatercardeditor'
+    namespace 'com.anonymous.nfccardeditor'
     defaultConfig {
-        applicationId 'com.anonymous.nfcwatercardeditor'
+        applicationId 'com.anonymous.nfccardeditor'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        setProperty("archivesBaseName", "nfcCardEditor-${versionName}")
     }
     signingConfigs {
         debug {

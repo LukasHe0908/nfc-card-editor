@@ -1,4 +1,4 @@
-package com.anonymous.nfcwatercardeditor
+package com.anonymous.nfccardeditor
 
 import android.app.Application
 import android.content.res.Configuration

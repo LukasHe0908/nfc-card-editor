@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "水卡编辑器",
-    "slug": "nfc-water-card-editor",
+    "slug": "nfc-card-editor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/splash-icon.png",
@@ -18,7 +18,7 @@
         "backgroundColor": "#EDEDF4"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.nfcwatercardeditor"
+      "package": "com.anonymous.nfccardeditor"
     },
     "web": {
       "bundler": "metro",

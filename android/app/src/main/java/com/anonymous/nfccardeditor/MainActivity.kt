@@ -1,4 +1,4 @@
-package com.anonymous.nfcwatercardeditor
+package com.anonymous.nfccardeditor
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
