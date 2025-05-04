@@ -1,8 +1,17 @@
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 
-export default function Home() {
+export default function Wrapper() {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Component></Component>
+    </View>
+  );
+}
+
+export function Component() {
   const safeAreaInsets = useSafeAreaInsets();
 
   return (

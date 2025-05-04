@@ -5,17 +5,16 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useFocusEffect } from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 
 // Pre-step, call this before any NFC operations
 NfcManager.start();
 
-export default function Home(props: any) {
+export default function Component(props: any) {
   const [tagInfo, setTagInfo] = useState<any>(null);
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
 
-  useEffect(() => {
+  useFocusEffect(() => {
     let isActive = true;
 
     async function scanLoop() {
@@ -43,20 +42,19 @@ export default function Home(props: any) {
       isActive = false;
       NfcManager.cancelTechnologyRequest();
     };
-  }, []);
+  });
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Appbar.Header elevated={false}>
         <Appbar.Content title={'主页'} />
         <TouchableRipple
           onPress={() => {
+            const goToMore = () => {
+              props.navigation?.navigate('更多');
+            };
             setTimeout(() => {
-              if (props.setIndex) {
-                props.setIndex(3);
-              } else {
-                router.push('/');
-              }
+              goToMore();
             }, 100);
           }}
           borderless
@@ -68,9 +66,9 @@ export default function Home(props: any) {
               width: 36,
               height: 36,
               borderRadius: 999,
-              borderColor: theme.colors.primaryContainer,
+              borderColor: colors.primaryContainer,
               borderWidth: 0.5,
-              backgroundColor: theme.colors.primary,
+              backgroundColor: colors.primary,
             }}
           />
         </TouchableRipple>
@@ -95,13 +93,13 @@ export default function Home(props: any) {
             <Text style={styles.value}>--</Text>
           </View>
         </Surface>
-        <Button icon='pencil' mode='contained' onPress={() => router.push('/home/home')} style={{ marginTop: 20 }}>
+        <Button icon='pencil' mode='contained' onPress={() => router.push('/home')} style={{ marginTop: 20 }}>
           写入数据
         </Button>
         <Button mode='contained-tonal' onPress={() => router.push('/tabs/home')} style={{ marginTop: 20 }}>
           Test: To Tabs
         </Button>
-        <Button mode='contained-tonal' onPress={() => router.push('/home/home')} style={{ marginTop: 20 }}>
+        <Button mode='contained-tonal' onPress={() => router.push('/home')} style={{ marginTop: 20 }}>
           Test: To This Page
         </Button>
         <Text

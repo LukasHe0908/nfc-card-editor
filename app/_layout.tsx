@@ -42,6 +42,7 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <PaperProvider theme={paperTheme}>
       <Stack
+        initialRouteName='home'
         screenOptions={{
           headerShown: false,
         }}></Stack>
