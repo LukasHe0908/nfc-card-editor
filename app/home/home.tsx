@@ -55,7 +55,7 @@ export default function Home(props: any) {
               if (props.setIndex) {
                 props.setIndex(3);
               } else {
-                alert('Missing setIndex prop!');
+                router.push('/');
               }
             }, 100);
           }}
@@ -95,18 +95,14 @@ export default function Home(props: any) {
             <Text style={styles.value}>--</Text>
           </View>
         </Surface>
+        <Button icon='pencil' mode='contained' onPress={() => router.push('/home/home')} style={{ marginTop: 20 }}>
+          写入数据
+        </Button>
         <Button mode='contained-tonal' onPress={() => router.push('/tabs/home')} style={{ marginTop: 20 }}>
           Test: To Tabs
         </Button>
         <Button mode='contained-tonal' onPress={() => router.push('/home/home')} style={{ marginTop: 20 }}>
           Test: To This Page
-        </Button>
-        <Button
-          onPress={() => {
-            Sentry.captureException(new Error('First error'));
-          }}
-          style={{ marginTop: 20 }}>
-          Try report!
         </Button>
         <Text
           style={{

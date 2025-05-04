@@ -39,7 +39,15 @@
           "resizeMode": "contain"
         }
       ],
-      "react-native-nfc-manager"
+      "react-native-nfc-manager",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "nfc-card-editor",
+          "organization": "lukas-fi"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
