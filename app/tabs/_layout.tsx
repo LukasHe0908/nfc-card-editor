@@ -1,25 +1,28 @@
 import { Tabs } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function TabsLayout() {
   return (
     <Tabs>
       <Tabs.Screen
-        name="home"
+        name='home'
         options={{
           title: '首页',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='home' size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name='test'
         options={{
-          title: '设置',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="settings" size={size} color={color} />
-          ),
+          title: '测试',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='bug' size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name='test2'
+        options={{
+          title: '测试2',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='bug' size={size} color={color} />,
         }}
       />
     </Tabs>
