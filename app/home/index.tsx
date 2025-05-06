@@ -54,70 +54,98 @@ export default function Component(props: any) {
     }, [])
   );
 
-  async function readMifareClassicBlock(sectorIndex = 0, keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff]) {
-    try {
-      // 初始化 NFC
-      await NfcManager.start();
+  async function readMifareClassicBlock(
+  sectorIndex = 0,
+  keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+) {
+  try {
+    await NfcManager.start();
 
-      // 请求 MifareClassic 技术
-      await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    const tagInfo = await NfcManager.getTag();
 
-      const tagInfo = await NfcManager.getTag();
+    const mifare = NfcManager.mifareClassicHandlerAndroid;
 
-      const mifare = NfcManager.mifareClassicHandlerAndroid;
-
-      // 认证该 sector
-      await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
-
-      // 获取 sector 的第一个 block
-      const blocks = await mifare.mifareClassicSectorToBlock(sectorIndex);
-      console.log('blocks', blocks);
-
-      const firstBlock = blocks;
-
-      // 读取 block
-      const data = await mifare.mifareClassicReadBlock(firstBlock);
-      console.log('读取成功:', data);
-      return { tag: tagInfo, data };
-    } catch (ex) {
-      console.warn('读取失败:', ex);
-    } finally {
-      // 释放 NFC 资源
-      // await NfcManager.cancelTechnologyRequest();
+    const auth = await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
+    if (!auth) {
+      throw new Error('认证失败');
     }
+
+    const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
+    const blockCount = await mifare.mifareClassicGetBlockCountInSector(sectorIndex);
+
+    const dataList: number[][] = [];
+
+    for (let i = 0; i < blockCount; i++) {
+      const blockIndex = blockStart + i;
+      const data = await mifare.mifareClassicReadBlock(blockIndex);
+      dataList.push(data);
+    }
+
+    console.log(`读取成功 sector ${sectorIndex}:`, dataList);
+    return { tag: tagInfo, data: dataList };
+  } catch (ex) {
+    console.warn('读取失败:', ex);
+  } finally {
+    // 注意：建议释放资源，避免技术请求挂起
+    await NfcManager.cancelTechnologyRequest().catch(() => {});
   }
+}
 
   const startScan = async () => {
-    if (!scanFinished) return;
-    setTagInfo(null);
-    setIsScanning(true);
-    setScanFinished(false);
+  if (!scanFinished) return;
+  setTagInfo(null);
+  setIsScanning(true);
+  setScanFinished(false);
 
-    try {
-      await NfcManager.cancelTechnologyRequest().catch(() => {});
-      // await NfcManager.requestTechnology([NfcTech.Ndef]);
-      // const tag = await NfcManager.getTag();
-      // console.log(tag);
-      // setTagInfo({ tag });
+  try {
+    await NfcManager.cancelTechnologyRequest().catch(() => {});
 
-      const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16)); // 转字节数组
-      const result = await readMifareClassicBlock(7, key);
-      console.log('result', result);
-      setTagInfo(result);
-    } catch (e) {
-      console.warn('Scan error or cancelled', e);
-    } finally {
-      setIsScanning(false);
-      await NfcManager.cancelTechnologyRequest().catch(() => {});
-      setScanFinished(true);
+    const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16));
+    const result = await readMifareClassicBlock(7, key);
+
+    if (result?.data) {
+      // 转换为十六进制字符串
+      const hexBlocks = result.data.map(block =>
+        block.map(byte => byte.toString(16).padStart(2, '0')).join(' ')
+      );
+
+      // 提取用户 ID（block1 第2-3字节，小端）
+      let userId: number | null = null;
+      const block1 = result.data[1];
+      if (block1?.length >= 3) {
+        userId = (block1[2] << 8) | block1[1];
+      }
+
+      // 提取余额（block2 前4字节，小端）
+      let balance: number | null = null;
+      const block2 = result.data[2];
+      if (block2?.length >= 4) {
+        balance =
+          (block2[3] << 24) |
+          (block2[2] << 16) |
+          (block2[1] << 8) |
+          block2[0];
+      }
+
+      // 整理 summary
+      result.summary = {
+        userId,
+        balance, // 单位为分
+        hexBlocks,
+      };
     }
-  };
 
-  const stopScan = async () => {
+    console.log('result', result);
+    setTagInfo(result);
+  } catch (e) {
+    console.warn('Scan error or cancelled', e);
+  } finally {
     setIsScanning(false);
     await NfcManager.cancelTechnologyRequest().catch(() => {});
     setScanFinished(true);
-  };
+  }
+};
 
   const toggleScan = () => {
     if (isScanning) {
@@ -168,12 +196,12 @@ export default function Component(props: any) {
             <Text style={styles.value}>{tagInfo?.tag?.id || '等待读取'}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.label}>卡ID：</Text>
-            <Text style={styles.value}>{tagInfo?.chunk?.type || '---'}</Text>
+            <Text style={styles.label}>用户ID：</Text>
+            <Text style={styles.value}>{tagInfo?.summary?.userId || '---'}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>余额：</Text>
-            <Text style={styles.value}>{tagInfo?.chunk?.type || '---'}</Text>
+            <Text style={styles.value}>{tagInfo?.summary?.balance || '---'}</Text>
           </View>
           <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
             <Chip icon='information' mode='outlined' onPress={() => setOringinInfoDialogVisible(true)}>
