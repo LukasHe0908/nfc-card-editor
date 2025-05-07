@@ -88,7 +88,7 @@ export default function Component(props: any) {
     console.warn('读取失败:', ex);
   } finally {
     // 注意：建议释放资源，避免技术请求挂起
-    await NfcManager.cancelTechnologyRequest().catch(() => {});
+    // await NfcManager.cancelTechnologyRequest().catch(() => {});
   }
 }
 
