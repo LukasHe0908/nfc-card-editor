@@ -23,17 +23,17 @@ export default function WritePage() {
       key: 'old',
       label: '旧卡',
       icon: 'credit-card-outline',
-      description: '适用于2019年前的M1卡片，如校园卡、饭卡等。',
+      description: '适用于已写入过数据、有金额的Mifare Classic卡片。',
     },
     {
       key: 'new',
       label: '新卡',
       icon: 'credit-card-chip-outline',
-      description: '适用于新版支持加密的IC卡，安全性更高。',
+      description: '适用于未写入过数据卡片，例如新生成的空白卡。',
     },
   ];
 
-  const amountOptions = [1.00, 4.00, 10.00, 16.00];
+  const amountOptions = [0.00, 1.00, 4.00, 10.00, 16.00];
   const selectedCard = cardOptions.find(item => item.key === cardType);
 
   const handleWrite = async () => {
