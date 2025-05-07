@@ -36,14 +36,61 @@ export default function WritePage() {
   const amountOptions = [0.00, 1.00, 4.00, 10.00, 16.00];
   const selectedCard = cardOptions.find(item => item.key === cardType);
 
+  async function writeMifareClassicBlocks(
+  sectorIndex = 7,
+  keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+  blockData: { [blockOffset: number]: number[] }
+) {
+  try {
+    await NfcManager.start();
+    await NfcManager.requestTechnology(NfcTech.MifareClassic);
+
+    const mifare = NfcManager.mifareClassicHandlerAndroid;
+
+    const auth = await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
+    if (!auth) {
+      throw new Error('认证失败');
+    }
+
+    const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
+
+    for (const [offsetStr, data] of Object.entries(blockData)) {
+      const blockOffset = parseInt(offsetStr, 10);
+      const blockIndex = blockStart + blockOffset;
+
+      if (data.length !== 16) {
+        throw new Error(`数据长度错误，block ${blockOffset} 不是16字节`);
+      }
+
+      await mifare.mifareClassicWriteBlock(blockIndex, data);
+      console.log(`写入 block ${blockIndex} 成功`);
+    }
+
+    console.log(`写入完成 sector ${sectorIndex}`);
+    return true;
+  } catch (ex) {
+    console.warn('写入失败:', ex);
+    throw ex;
+  } finally {
+    await NfcManager.cancelTechnologyRequest().catch(() => {});
+  }
+  }
+
   const handleWrite = async () => {
     setConfirmVisible(false);
     setWriting(true);
 
     try {
-      // 模拟写入流程
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 模拟2秒写入时间
-      setSnackbarText(`写入成功：¥${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
+      const sector = 7;
+  const hexString = '0000064000006144FFFFF9BF01C33500';
+  const bytes = hexString.match(/.{1,2}/g)!.map(x => parseInt(x, 16));
+  const keyA = '4E324C663430'.match(/.{1,2}/g)!.map(x => parseInt(x, 16));
+      await writeMifareClassicBlocks(sector, keyA, {
+      2: bytes,
+      3: bytes,
+    });
+      
+      setSnackbarText(`写入成功：${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
     } catch (error) {
       setSnackbarText('写入失败，请重试');
     } finally {
