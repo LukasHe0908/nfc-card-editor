@@ -22,9 +22,10 @@ jobs:
 
       - name: Grant execute permission to gradlew
         run: chmod +x android/gradlew
-
       - name: Build release APK with debug keystore
-        run:  cd ./android && gradlew assembleRelease
+        run: ./gradlew assembleRelease
+        working-directory: android
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
