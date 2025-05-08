@@ -185,3 +185,7 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+sentry {
+    autoUpload = project.hasProperty("sentryEnabled") && project.getProperty("sentryEnabled").toBoolean()
+}
