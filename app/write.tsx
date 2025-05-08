@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import {
   Appbar, Text, Surface, useTheme, Button, Chip,
   Dialog, Portal, ActivityIndicator, Snackbar
@@ -92,6 +92,7 @@ export default function WritePage() {
       
       setSnackbarText(`写入成功：${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
     } catch (error) {
+      Alert.alert(error);
       setSnackbarText('写入失败，请重试');
     } finally {
       setWriting(false);
