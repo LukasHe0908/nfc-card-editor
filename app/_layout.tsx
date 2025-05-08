@@ -5,9 +5,9 @@ import { useEffect } from 'react';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
-import * as Sentry from '@sentry/react-native';
+//import * as Sentry from '@sentry/react-native';
 
-Sentry.init({
+/*Sentry.init({
   dsn: 'https://a95dd05e99070d95110ebb9aa1cf4896@o4509214755782657.ingest.us.sentry.io/4509263187214336',
 
   // Configure Session Replay
@@ -17,11 +17,11 @@ Sentry.init({
 
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
-});
+});*/
 
 SplashScreen.preventAutoHideAsync();
 
-export default Sentry.wrap(function RootLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { theme } = useMaterial3Theme();
   const paperTheme = colorScheme === 'dark' ? { ...MD3DarkTheme, colors: theme.dark } : { ...MD3LightTheme, colors: theme.light };
@@ -37,4 +37,4 @@ export default Sentry.wrap(function RootLayout() {
         }}></Stack>
     </PaperProvider>
   );
-});
+};
