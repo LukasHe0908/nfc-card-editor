@@ -24,7 +24,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build release APK with debug keystore
-        run:  cd android && gradlew assembleRelease
+        run:  cd ./android && gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
