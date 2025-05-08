@@ -1,4 +1,4 @@
-name: Android Release (with debug keystore)
+name: Android Release (with debug keystore, no Sentry)
 
 on:
   workflow_dispatch:
@@ -36,8 +36,8 @@ jobs:
         run: chmod +x gradlew
         working-directory: android
 
-      - name: Build release APK with debug keystore
-        run: ./gradlew assembleRelease
+      - name: Build release APK without Sentry
+        run: ./gradlew assembleRelease -PsentryEnabled=false
         working-directory: android
 
       - name: Upload APK artifacts
