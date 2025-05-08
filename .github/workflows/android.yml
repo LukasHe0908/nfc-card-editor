@@ -15,6 +15,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '21'
+          cache: 'yarn'
+
+      - name: Enable Corepack and install Yarn
+        run: |
+          corepack enable
+
+      - name: Install JS dependencies
+        run: yarn install
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -33,7 +41,7 @@ jobs:
         run: ./gradlew assembleRelease
         working-directory: android
 
-      - name: Upload APK
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-release
