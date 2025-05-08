@@ -15,6 +15,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '21'
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -25,11 +26,12 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Grant execute permission to gradlew
-        run: chmod +x android/gradlew
+        run: chmod +x gradlew
+        working-directory: android
+
       - name: Build release APK with debug keystore
         run: ./gradlew assembleRelease
         working-directory: android
-
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
