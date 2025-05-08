@@ -37,7 +37,7 @@ jobs:
         working-directory: android
 
       - name: Build release APK without Sentry
-        run: ./gradlew assembleRelease -PsentryEnabled=false
+        run: ./gradlew assembleRelease
         working-directory: android
 
       - name: Upload APK artifacts
