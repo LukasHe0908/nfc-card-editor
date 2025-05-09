@@ -112,14 +112,14 @@ export default function Component(props: any) {
 
       // 提取用户 ID（block1 第2-3字节，大端）
       let userId: number | null = null;
-      const block1 = result.data[1];
+      const block1 = result.data[0];
       if (block1?.length >= 3) {
         userId = (block1[1] << 8) | block1[2];
       }
 
       // 提取余额（block2 前4字节，大端）
       let balance: number | null = null;
-      const block2 = result.data[2];
+      const block2 = result.data[1];
       if (block2?.length >= 4) {
         balance =
           (block2[0] << 24) |
