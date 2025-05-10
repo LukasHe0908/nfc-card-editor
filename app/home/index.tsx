@@ -20,12 +20,13 @@ import { useRouter } from 'expo-router';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Pre-step, call this before any NFC operations
 NfcManager.start();
 
 export default function Component(props: any) {
-  const [tagInfo, setTagInfo] = useState<any>(null);
+  const [tagInfo, setTagInfo] = useState<any>({});
   const [nfcSupported, setNfcSupported] = useState(false);
   const [nfcEnabled, setNfcEnabled] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -54,99 +55,105 @@ export default function Component(props: any) {
     }, [])
   );
 
-  async function readMifareClassicBlock(
-  sectorIndex = 0,
-  keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
-) {
-  try {
-    await NfcManager.start();
+  async function readMifareClassicBlock(sectorIndex = 0, keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff], cancelTechRequest: boolean = false) {
+    try {
+      await NfcManager.start();
+      await NfcManager.requestTechnology(NfcTech.MifareClassic);
+      const tagInfo = await NfcManager.getTag();
 
-    await NfcManager.requestTechnology(NfcTech.MifareClassic);
-    const tagInfo = await NfcManager.getTag();
+      const mifare = NfcManager.mifareClassicHandlerAndroid;
+      try {
+        await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
+      } catch (error: any) {
+        return { tag: tagInfo, data: error.toString() };
+      }
 
-    const mifare = NfcManager.mifareClassicHandlerAndroid;
+      const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
+      const blockCount: number = await (mifare as any).mifareClassicGetBlockCountInSector(sectorIndex);
 
-    const auth = await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
-    if (!auth) {
-      throw new Error('认证失败');
+      const dataList: number[][] = [];
+
+      for (let i = 0; i < blockCount; i++) {
+        const blockIndex = (blockStart as any) + i;
+        const data = await mifare.mifareClassicReadBlock(blockIndex);
+        dataList.push(data as any);
+      }
+
+      return { tag: tagInfo, data: dataList };
+    } catch (ex) {
+      throw new Error(`NFC Read ${ex}`);
+    } finally {
+      if (cancelTechRequest) await NfcManager.cancelTechnologyRequest().catch(() => {});
     }
-
-    const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
-    const blockCount = await mifare.mifareClassicGetBlockCountInSector(sectorIndex);
-
-    const dataList: number[][] = [];
-
-    for (let i = 0; i < blockCount; i++) {
-      const blockIndex = blockStart + i;
-      const data = await mifare.mifareClassicReadBlock(blockIndex);
-      dataList.push(data);
-    }
-
-    console.log(`读取成功 sector ${sectorIndex}:`, dataList);
-    return { tag: tagInfo, data: dataList };
-  } catch (ex) {
-    console.warn('读取失败:', ex);
-  } finally {
-    // 注意：建议释放资源，避免技术请求挂起
-    // await NfcManager.cancelTechnologyRequest().catch(() => {});
   }
-}
 
   const startScan = async () => {
-  if (!scanFinished) return;
-  setTagInfo(null);
-  setIsScanning(true);
-  setScanFinished(false);
+    if (!scanFinished) return;
+    setTagInfo({});
+    setIsScanning(true);
+    setScanFinished(false);
 
-  try {
-    await NfcManager.cancelTechnologyRequest().catch(() => {});
+    try {
+      await NfcManager.cancelTechnologyRequest().catch(() => {});
 
-    const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16));
-    const result = await readMifareClassicBlock(7, key);
+      const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16));
+      let result_oringin = await readMifareClassicBlock(7, key);
+      let result = { summary: {}, ...result_oringin };
 
-    if (result?.data) {
-      // 转换为十六进制字符串
-      const hexBlocks = result.data.map(block =>
-        block.map(byte => byte.toString(16).padStart(2, '0')).join(' ')
-      );
+      let cardId = result.tag?.id;
+      if (result?.data && typeof result?.data === 'object') {
+        // 转换为十六进制字符串
+        const hexBlocks = result.data.map((block: number[]) => block.map(byte => byte.toString(16).padStart(2, '0')).join(' '));
 
-      // 提取用户 ID（block1 第2-3字节，大端）
-      let userId: number | null = null;
-      const block1 = result.data[0];
-      if (block1?.length >= 3) {
-        userId = (block1[1] << 8) | block1[2];
+        // 提取用户 ID（block1 第2-3字节，大端）
+        let userId: number | null = null;
+        const block1 = result.data[0];
+        if (block1?.length >= 3) {
+          userId = (block1[1] << 8) | block1[2];
+        }
+
+        // 提取余额（block2 前4字节，大端）
+        let balance: number | null = null;
+        const block2 = result.data[1];
+        if (block2?.length >= 4) {
+          balance = (block2[0] << 24) | (block2[1] << 16) | (block2[2] << 8) | block2[3];
+          balance = balance / 100;
+        }
+
+        result.summary = { cardId, userId, balance, hexBlocks };
+        await addHistory(result.summary);
+        async function addHistory(jsonObject: object) {
+          let historyStorage = await AsyncStorage.getItem('history');
+          let storageJSON = [];
+          if (historyStorage) {
+            storageJSON = JSON.parse(historyStorage);
+          }
+          let storageJSONSingle = { ...jsonObject, storageTime: Date.now() };
+          try {
+            await AsyncStorage.setItem('history', JSON.stringify([storageJSONSingle, ...storageJSON]));
+          } catch (e: any) {
+            console.error(`save error: ${e.toString()}`);
+          }
+        }
+      } else {
+        result.summary = { cardId };
       }
 
-      // 提取余额（block2 前4字节，大端）
-      let balance: number | null = null;
-      const block2 = result.data[1];
-      if (block2?.length >= 4) {
-        balance =
-          (block2[0] << 24) |
-          (block2[1] << 16) |
-          (block2[2] << 8) |
-          block2[3];
-        balance = balance / 100
-      }
-
-      // 整理 summary
-      result.summary = {
-        userId,
-        balance,
-        hexBlocks,
-      };
+      setTagInfo(result);
+    } catch (e) {
+      console.warn('Scan error or cancelled', e);
+    } finally {
+      setIsScanning(false);
+      await NfcManager.cancelTechnologyRequest().catch(() => {});
+      setScanFinished(true);
     }
+  };
 
-    console.log('result', result);
-    setTagInfo(result);
-  } catch (e) {
-    console.warn('Scan error or cancelled', e);
-  } finally {
+  const stopScan = async () => {
     setIsScanning(false);
     await NfcManager.cancelTechnologyRequest().catch(() => {});
     setScanFinished(true);
-  }
-};
+  };
 
   const toggleScan = () => {
     if (isScanning) {
@@ -194,7 +201,7 @@ export default function Component(props: any) {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>卡片ID：</Text>
-            <Text style={styles.value}>{tagInfo?.tag?.id || '等待读取'}</Text>
+            <Text style={styles.value}>{tagInfo?.summary?.cardId || '等待读取'}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>用户ID：</Text>
@@ -202,7 +209,9 @@ export default function Component(props: any) {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>余额：</Text>
-            <Text style={styles.value}>{tagInfo?.summary?.balance || '---'}</Text>
+            <Text style={styles.value}>
+              {(typeof tagInfo?.summary?.balance === 'number' && (tagInfo?.summary?.balance).toFixed(2)) || '---'}
+            </Text>
           </View>
           <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
             <Chip icon='information' mode='outlined' onPress={() => setOringinInfoDialogVisible(true)}>
