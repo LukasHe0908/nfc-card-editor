@@ -61,7 +61,7 @@ export default function Component(props: any) {
 
     try {
       const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16));
-      let result_oringin = await readMifareClassicBlock(7, { A: key, B: key });
+      let result_oringin = await readMifareClassicBlock(7, key);
       let result = { summary: {}, ...result_oringin };
 
       let cardId = result.tag?.id;

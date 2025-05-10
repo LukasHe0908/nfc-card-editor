@@ -125,25 +125,17 @@ export default function WritePage() {
           .match(/.{1,2}/g)!
           .map((x: string) => parseInt(x, 16));
 
-        await writeMifareClassicBlocks(
-          sector,
-          { A: key, B: key },
-          {
-            0: block0Bytes,
-            1: bytes,
-            2: bytes,
-            3: authBlock,
-          }
-        );
+        await writeMifareClassicBlocks(sector, key, {
+          0: block0Bytes,
+          1: bytes,
+          2: bytes,
+          3: authBlock,
+        });
       } else {
-        await writeMifareClassicBlocks(
-          sector,
-          { A: key, B: key },
-          {
-            1: bytes,
-            2: bytes,
-          }
-        );
+        await writeMifareClassicBlocks(sector, key, {
+          1: bytes,
+          2: bytes,
+        });
       }
 
       setSnackbarText(`写入成功: ${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
