@@ -139,7 +139,7 @@ export async function writeMifareClassicBlocks(
         await mifare.mifareClassicAuthenticateB(sectorIndex, keys.B!);
         await action();
       } catch (eB) {
-        throw new Error(`Key A/B Both Can't Write Sector ${sectorIndex}`);
+        throw new Error(`Key A/B Both Can't Write Sector ${sectorIndex} ${eB}`);
       }
     }
     async function action() {
