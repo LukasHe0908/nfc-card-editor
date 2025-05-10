@@ -68,10 +68,10 @@ export default function Wrapper() {
             </Button>
           </Dialog.Actions>
         </Dialog>
+        <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
+          {snackbarText}
+        </Snackbar>
       </Portal>
-      <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
-        {snackbarText}
-      </Snackbar>
       <Component></Component>
     </View>
   );
@@ -96,7 +96,7 @@ export function Component() {
 
   return (
     <ScrollView>
-      <View  style={{ flex: 1, gap: 0, flexDirection: 'column' }}>
+      <View style={{ flex: 1, gap: 0, flexDirection: 'column' }}>
         {history.map((item: any, index) => (
           <View key={index}>
             <TouchableRipple
@@ -192,10 +192,10 @@ export function Component() {
             </Button>
           </Dialog.Actions>
         </Dialog>
+        <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
+          {snackbarText}
+        </Snackbar>
       </Portal>
-      <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
-        {snackbarText}
-      </Snackbar>
     </ScrollView>
   );
 }

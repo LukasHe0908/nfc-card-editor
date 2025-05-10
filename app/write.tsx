@@ -146,10 +146,10 @@ export default function WritePage() {
         );
       }
 
-      setSnackbarText(`写入成功：${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
+      setSnackbarText(`写入成功: ${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
     } catch (error: any) {
       console.error(error);
-      setSnackbarText('写入失败，请重试');
+      setSnackbarText(`写入失败，请重试: ${error}`);
     } finally {
       setWriting(false);
       setSnackbarVisible(true);
