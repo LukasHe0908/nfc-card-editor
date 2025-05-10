@@ -2,11 +2,15 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 
 export async function readMifareClassicBlock(
   sectorIndex = 0,
-  keys: { A?: number[]; B?: number[] } = { A: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff], B: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff] },
+  keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+  useStartUp = true,
   cancelTechRequest: boolean = false
 ) {
   try {
-    await NfcManager.start();
+    if (useStartUp) {
+      await NfcManager.start();
+      await NfcManager.cancelTechnologyRequest();
+    }
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
     const tagInfo = await NfcManager.getTag();
 
@@ -17,13 +21,16 @@ export async function readMifareClassicBlock(
     const dataList: number[][] = [];
 
     try {
-      await mifare.mifareClassicAuthenticateA(sectorIndex, keys.A!);
+      await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
+      await action();
     } catch (eA) {
-      console.log(`Can't use Key A to Read Sector ${sectorIndex} ${eA}`);
+      console.log(`Can't Read Sector ${sectorIndex} ${eA}`);
       try {
-        await mifare.mifareClassicAuthenticateB(sectorIndex, keys.B!);
+        await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
+        await action();
       } catch (eB) {
-        throw new Error(`Key A/B Both Can't Read Sector ${sectorIndex} ${eB}`);
+        return { tag: tagInfo, data: `Can't Read Sector ${sectorIndex} ${eA} ${eB}` };
+        throw new Error(`Can't Read Sector ${sectorIndex} ${eA} ${eB}`);
       }
     }
     async function action() {
@@ -42,86 +49,18 @@ export async function readMifareClassicBlock(
   }
 }
 
-export async function readMifareClassicBlockWithTimer(
-  sectorIndex = 0,
-  keys: { A?: number[]; B?: number[] } = { A: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff], B: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff] },
-  cancelTechRequest: boolean = false
-) {
-  const timings: Record<string, number> = {};
-  const startTime = Date.now();
-
-  try {
-    const t1 = Date.now();
-    await NfcManager.cancelTechnologyRequest();
-    await NfcManager.start();
-    timings['start'] = Date.now() - t1;
-
-    const t2 = Date.now();
-    await NfcManager.requestTechnology(NfcTech.MifareClassic);
-    timings['requestTechnology'] = Date.now() - t2;
-
-    const t3 = Date.now();
-    const tagInfo = await NfcManager.getTag();
-    timings['getTag'] = Date.now() - t3;
-
-    const mifare = NfcManager.mifareClassicHandlerAndroid;
-
-    const t4 = Date.now();
-    const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
-    const blockCount: number = await (mifare as any).mifareClassicGetBlockCountInSector(sectorIndex);
-    timings['getBlockInfo'] = Date.now() - t4;
-
-    const dataList: number[][] = [];
-
-    const authStart = Date.now();
-    let usedKey: 'A' | 'B' | null = null;
-
-    try {
-      await mifare.mifareClassicAuthenticateA(sectorIndex, keys.A!);
-      usedKey = 'A';
-    } catch (eA) {
-      console.log(`Can't use Key A to Read Sector ${sectorIndex} ${eA}`);
-      try {
-        await mifare.mifareClassicAuthenticateB(sectorIndex, keys.B!);
-        usedKey = 'B';
-      } catch (eB) {
-        throw new Error(`Key A/B Both Can't Read Sector ${sectorIndex} ${eB}`);
-      }
-    }
-    timings['authentication'] = Date.now() - authStart;
-
-    const readStart = Date.now();
-    for (let i = 0; i < blockCount; i++) {
-      const blockIndex = (blockStart as any) + i;
-      const data = await mifare.mifareClassicReadBlock(blockIndex);
-      dataList.push(data as any);
-    }
-    timings['readBlocks'] = Date.now() - readStart;
-
-    timings['total'] = Date.now() - startTime;
-
-    return {
-      tag: tagInfo,
-      data: dataList,
-      timings,
-      usedKey,
-    };
-  } catch (ex) {
-    throw new Error(`NFC Read ${ex}`);
-  } finally {
-    if (cancelTechRequest) await NfcManager.cancelTechnologyRequest().catch(() => {});
-  }
-}
-
 export async function writeMifareClassicBlocks(
-  sectorIndex = 7,
-  keys: { A?: number[]; B?: number[] } = { A: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff], B: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff] },
+  sectorIndex = 1,
+  keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
   blockData: { [blockOffset: number]: number[] },
+  useStartUp = true,
   cancelTechRequest: boolean = true
 ) {
   try {
-    await NfcManager.cancelTechnologyRequest();
-    await NfcManager.start();
+    if (useStartUp) {
+      await NfcManager.start();
+      await NfcManager.cancelTechnologyRequest();
+    }
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
 
     const mifare = NfcManager.mifareClassicHandlerAndroid;
@@ -129,15 +68,15 @@ export async function writeMifareClassicBlocks(
     const blockCount: number = await (mifare as any).mifareClassicGetBlockCountInSector(sectorIndex);
 
     try {
-      await mifare.mifareClassicAuthenticateA(sectorIndex, keys.A!);
+      await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
       await action();
     } catch (eA) {
-      console.log(`Can't use Key A Write Sector ${sectorIndex} ${eA}`);
+      console.log(`Can't Write Sector ${sectorIndex} ${eA}`);
       try {
-        await mifare.mifareClassicAuthenticateB(sectorIndex, keys.B!);
+        await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
         await action();
       } catch (eB) {
-        throw new Error(`Key A/B Both Can't Write Sector ${sectorIndex} ${eB}`);
+        throw new Error(`Can't Write Sector ${sectorIndex} ${eA} ${eB}`);
       }
     }
     async function action() {

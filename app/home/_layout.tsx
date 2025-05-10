@@ -23,7 +23,7 @@ function Router() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={{ headerShown: false, animation: 'fade' }}
+        screenOptions={{ headerShown: false }}
         tabBar={({ navigation, state, descriptors, insets }) => (
           <BottomNavigation.Bar
             navigationState={state}
