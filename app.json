@@ -2,7 +2,7 @@
   "expo": {
     "name": "水卡编辑器",
     "slug": "nfc-card-editor",
-    "version": "1.0.0",
+    "version": "0.1.5",
     "orientation": "portrait",
     "icon": "./assets/images/splash-icon.png",
     "scheme": "nfccardeditor",

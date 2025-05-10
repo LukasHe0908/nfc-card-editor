@@ -21,9 +21,7 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Pre-step, call this before any NFC operations
-NfcManager.start();
+import { readMifareClassicBlock } from '@/components/mifareClassic';
 
 export default function Component(props: any) {
   const [tagInfo, setTagInfo] = useState<any>({});
@@ -55,38 +53,6 @@ export default function Component(props: any) {
     }, [])
   );
 
-  async function readMifareClassicBlock(sectorIndex = 0, keyA = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff], cancelTechRequest: boolean = false) {
-    try {
-      await NfcManager.start();
-      await NfcManager.requestTechnology(NfcTech.MifareClassic);
-      const tagInfo = await NfcManager.getTag();
-
-      const mifare = NfcManager.mifareClassicHandlerAndroid;
-      try {
-        await mifare.mifareClassicAuthenticateA(sectorIndex, keyA);
-      } catch (error: any) {
-        return { tag: tagInfo, data: error.toString() };
-      }
-
-      const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
-      const blockCount: number = await (mifare as any).mifareClassicGetBlockCountInSector(sectorIndex);
-
-      const dataList: number[][] = [];
-
-      for (let i = 0; i < blockCount; i++) {
-        const blockIndex = (blockStart as any) + i;
-        const data = await mifare.mifareClassicReadBlock(blockIndex);
-        dataList.push(data as any);
-      }
-
-      return { tag: tagInfo, data: dataList };
-    } catch (ex) {
-      throw new Error(`NFC Read ${ex}`);
-    } finally {
-      if (cancelTechRequest) await NfcManager.cancelTechnologyRequest().catch(() => {});
-    }
-  }
-
   const startScan = async () => {
     if (!scanFinished) return;
     setTagInfo({});
@@ -94,10 +60,8 @@ export default function Component(props: any) {
     setScanFinished(false);
 
     try {
-      await NfcManager.cancelTechnologyRequest().catch(() => {});
-
       const key = '4E324C663430'.match(/.{1,2}/g)!.map(b => parseInt(b, 16));
-      let result_oringin = await readMifareClassicBlock(7, key);
+      let result_oringin = await readMifareClassicBlock(7, { A: key, B: key });
       let result = { summary: {}, ...result_oringin };
 
       let cardId = result.tag?.id;
@@ -229,7 +193,7 @@ export default function Component(props: any) {
               style={{ flexGrow: 1 }}
               loading={!isScanning && !scanFinished}
               disabled={(!isScanning && !scanFinished) || !nfcEnabled}>
-              {nfcEnabled ? (isScanning ? '取消' : scanFinished ? '读取' : '完成中') : '未开启NFC'}
+              {nfcEnabled ? (isScanning ? '取消' : scanFinished ? '读取' : '完成中') : '未启用NFC'}
             </Button>
             <IconButton icon='content-save' mode='contained' style={{ margin: 0 }}></IconButton>
           </View>
@@ -238,18 +202,21 @@ export default function Component(props: any) {
           写入数据
         </Button>
         <Button mode='contained-tonal' onPress={() => router.push('/tabs/home')} style={{ marginTop: 20 }}>
-          Test: To Tabs
+          测试页面
         </Button>
-        <Button mode='contained-tonal' onPress={() => router.push('/home')} style={{ marginTop: 20 }}>
+        {/* <Button mode='contained-tonal' onPress={() => router.push('/home')} style={{ marginTop: 20 }}>
           Test: To This Page
-        </Button>
+        </Button> */}
         <Text
           style={{
             textAlign: 'center',
             fontSize: 12,
             color: '#888',
             paddingVertical: 40,
-          }}>{`Alpha 1.0.0\n注意：Alpha版本仅用于测试。\n您的使用数据将会发送至Sentry，这将帮助我们更好地提供服务。`}</Text>
+          }}>
+          {`Alpha 1.0.0\n注意：Alpha版本仅用于测试。\n您的使用数据将会发送至Sentry，这将帮助我们更好地提供服务。\n`}
+          <Text style={{ fontSize: 14, color: '#888', fontWeight: '900' }}>内部版本，严禁外传！</Text>
+        </Text>
       </ScrollView>
     </View>
   );

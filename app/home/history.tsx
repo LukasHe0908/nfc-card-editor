@@ -53,7 +53,7 @@ export default function Wrapper() {
         <Dialog visible={clearHistoryConfirmVisible} onDismiss={() => setClearHistoryConfirmVisible(false)}>
           <Dialog.Title>全部删除</Dialog.Title>
           <Dialog.Content>
-            <Text>全部历史记录将被删除。</Text>
+            <Text>确定要删除全部记录吗？</Text>
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setClearHistoryConfirmVisible(false)}>取消</Button>
@@ -78,7 +78,14 @@ export default function Wrapper() {
 }
 
 export function Component() {
+  const { colors } = useTheme();
   const [history, setHistory] = useState<object[]>([]);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [jsonDialogVisible, setJsonDialogVisible] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarText, setSnackbarText] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -89,34 +96,106 @@ export function Component() {
 
   return (
     <ScrollView>
-      <Surface elevation={0} style={{ flex: 1, gap: 0, flexDirection: 'column' }}>
+      <View  style={{ flex: 1, gap: 0, flexDirection: 'column' }}>
         {history.map((item: any, index) => (
-          <>
-            <TouchableRipple key={index} onPress={() => {}} style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
-              <Surface elevation={0}>
-                {/* <Text>{JSON.stringify(item)}</Text> */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>卡片ID： </Text>
-                  <Text style={{ fontSize: 16 }}>{item?.cardId}</Text>
+          <View key={index}>
+            <TouchableRipple
+              onPress={() => {
+                setSelectedItem(item);
+                setJsonDialogVisible(true);
+              }}
+              style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>卡片ID： </Text>
+                    <Text style={{ fontSize: 16 }}>{item?.cardId}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>用户ID： </Text>
+                    <Text style={{ fontSize: 16 }}>{item?.userId}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>余额： </Text>
+                    <Text style={{ fontSize: 16 }}>{(typeof item?.balance === 'number' && (item?.balance).toFixed(2)) || '---'}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>读取时间： </Text>
+                    <Text style={{ fontSize: 16 }}>{new Date(item?.storageTime).toLocaleString()}</Text>
+                  </View>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>用户ID： </Text>
-                  <Text style={{ fontSize: 16 }}>{item?.userId}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>余额： </Text>
-                  <Text style={{ fontSize: 16 }}>{(typeof item?.balance === 'number' && (item?.balance).toFixed(2)) || '---'}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>读取时间： </Text>
-                  <Text style={{ fontSize: 16 }}>{new Date(item?.storageTime).toLocaleString()}</Text>
-                </View>
-              </Surface>
+                <TouchableRipple
+                  onPress={() => {
+                    setDeleteIndex(index);
+                    setDeleteConfirmVisible(true);
+                  }}
+                  borderless
+                  rippleColor='rgba(0,0,0,0.1)'
+                  style={{ borderRadius: 999999, padding: 8, marginLeft: 8 }}>
+                  <MaterialCommunityIcons name='delete-outline' size={24} color={colors.onBackground} />
+                </TouchableRipple>
+              </View>
             </TouchableRipple>
             <Divider></Divider>
-          </>
+          </View>
         ))}
-      </Surface>
+      </View>
+      <Portal>
+        <Dialog visible={jsonDialogVisible} onDismiss={() => setJsonDialogVisible(false)}>
+          <Dialog.Title>详细数据</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView style={{ paddingHorizontal: 24, maxHeight: 400 }}>
+              <Text style={{ fontFamily: 'monospace' }}>{JSON.stringify(selectedItem, null, 2)}</Text>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={() => setJsonDialogVisible(false)}>关闭</Button>
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog
+          visible={deleteConfirmVisible}
+          onDismiss={() => {
+            setDeleteConfirmVisible(false);
+            setDeleteIndex(null);
+          }}>
+          <Dialog.Title>确认删除</Dialog.Title>
+          <Dialog.Content>
+            <Text>确定要删除这条记录吗？</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => {
+                setDeleteConfirmVisible(false);
+                setDeleteIndex(null);
+              }}>
+              取消
+            </Button>
+            <Button
+              onPress={async () => {
+                if (deleteIndex !== null) {
+                  const updatedHistory = history.filter((_, i) => i !== deleteIndex);
+                  setHistory(updatedHistory);
+                  await AsyncStorage.setItem('history', JSON.stringify(updatedHistory));
+                  setSnackbarText('删除成功');
+                  setSnackbarVisible(true);
+                }
+                setDeleteConfirmVisible(false);
+                setDeleteIndex(null);
+              }}>
+              确认
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      <Snackbar visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)} duration={3000}>
+        {snackbarText}
+      </Snackbar>
     </ScrollView>
   );
 }

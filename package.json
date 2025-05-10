@@ -19,6 +19,7 @@
     "@react-navigation/elements": "^2.4.0",
     "@react-navigation/native": "^7.1.7",
     "@sentry/react-native": "^6.13.0",
+    "crypto-js": "^4.2.0",
     "expo": "^53.0.7",
     "expo-blur": "^14.1.4",
     "expo-clipboard": "^7.1.4",
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.27.1",
+    "@types/crypto-js": "^4",
     "@types/react": "^19.1.2",
     "eslint": "^9.26.0",
     "eslint-config-expo": "^9.2.0",
