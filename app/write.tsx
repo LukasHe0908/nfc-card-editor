@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Appbar, Text, Surface, useTheme, Button, Chip, Dialog, Portal, ActivityIndicator, Snackbar, Banner } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +14,7 @@ export default function WritePage() {
   const { colors } = useTheme();
 
   async function fetchAmountOptions() {
+    setLoadingAmountOptions(true);
     try {
       const cacheKey = 'amountOptionsCache';
       const timestampKey = 'amountOptionsTimestamp';
@@ -29,12 +31,17 @@ export default function WritePage() {
         return;
       }
 
+      function decryptAndParse(text: string) {
+        let decryptedData = AESTool.decrypt(text);
+        const parsedOptions = JSON.parse(decryptedData);
+        return parsedOptions;
+      }
+
       const res = await fetch('https://dns.alidns.com/resolve?name=balance-data.nfc-reader.app.lukas1.eu.org&type=txt');
       const json = await res.json();
       let txtData = json.Answer?.[0]?.data;
       txtData = txtData.replaceAll(/"(.*?)"/g, '$1').replaceAll(' ', '');
-      let decryptedData = AESTool.decrypt(txtData);
-      const parsedOptions = JSON.parse(decryptedData);
+      const parsedOptions = decryptAndParse(txtData);
 
       await AsyncStorage.setItem(cacheKey, JSON.stringify(parsedOptions));
       await AsyncStorage.setItem(timestampKey, now.toString());
@@ -42,6 +49,7 @@ export default function WritePage() {
       setAmountOptions(parsedOptions);
     } catch (error) {
       console.error('获取金额选项失败', error);
+      setAmountOptions(['failed']);
     } finally {
       setLoadingAmountOptions(false);
     }
@@ -62,10 +70,9 @@ export default function WritePage() {
     },
   ];
 
-  const [nfcSupported, setNfcSupported] = useState(false);
   const [nfcEnabled, setNfcEnabled] = useState(true);
   const [amountOptions, setAmountOptions] = useState<any[]>([]);
-  const [loadingAmountOptions, setLoadingAmountOptions] = useState(true);
+  const [loadingAmountOptions, setLoadingAmountOptions] = useState(false);
   const [cardType, setCardType] = useState<'old' | 'new' | null>('old');
   const [amount, setAmount] = useState<number | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -82,13 +89,23 @@ export default function WritePage() {
   }, []);
 
   useEffect(() => {
+    let timer = undefined;
     (async () => {
-      setNfcSupported(await NfcManager.isSupported());
-      setNfcEnabled(await NfcManager.isEnabled());
+      try {
+        const nfcSupported = await NfcManager.isSupported();
+        if (nfcSupported) {
+          setNfcEnabled(await NfcManager.isEnabled());
+          setInterval(async () => {
+            setNfcEnabled(await NfcManager.isEnabled());
+          }, 2000);
+        } else {
+          setNfcEnabled(false);
+        }
+      } catch (error) {
+        console.error('NFC Initial', error);
+        setNfcEnabled(false);
+      }
     })();
-    const timer = setInterval(async () => {
-      setNfcEnabled(await NfcManager.isEnabled());
-    }, 2000);
     return () => {
       clearInterval(timer);
       // 自动取消扫描
@@ -193,6 +210,7 @@ export default function WritePage() {
             )}
           </Surface>
 
+          {/* 新卡选择用户ID */}
           {cardType === 'new' && (
             <Surface style={styles.card} elevation={1}>
               <Text style={styles.sectionTitle}>用户 ID</Text>
@@ -247,11 +265,29 @@ export default function WritePage() {
               <ActivityIndicator />
             ) : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                {amountOptions.map(item => {
+                {amountOptions.map((item, index) => {
+                  if (item === 'failed') {
+                    return (
+                      <View key={index} style={{ flex: 1, alignItems: 'center' }}>
+                        <Image
+                          source={require('@/assets/svgs/wi-fi-disconnected.svg')}
+                          style={{ width: 48, height: 48 }}
+                          contentFit='contain'
+                        />
+                        <Text style={{ fontSize: 16 }}>获取失败</Text>
+                        <Button
+                          onPress={() => {
+                            fetchAmountOptions();
+                          }}>
+                          重试
+                        </Button>
+                      </View>
+                    );
+                  }
                   const isSelected = amount === item.key;
                   return (
                     <Chip
-                      key={item.key}
+                      key={index}
                       selected={isSelected}
                       onPress={() => setAmount(item.key)}
                       mode='outlined'
@@ -265,6 +301,7 @@ export default function WritePage() {
               </View>
             )}
           </Surface>
+
           {/* 写入按钮 */}
           <Button
             mode='contained'

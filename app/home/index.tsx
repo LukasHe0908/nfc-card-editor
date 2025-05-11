@@ -25,7 +25,6 @@ import { readMifareClassicBlock } from '@/components/mifareClassic';
 
 export default function Component(props: any) {
   const [tagInfo, setTagInfo] = useState<any>({});
-  const [nfcSupported, setNfcSupported] = useState(false);
   const [nfcEnabled, setNfcEnabled] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanFinished, setScanFinished] = useState(true); // 扫描流程是否结束（包括取消）
@@ -36,13 +35,23 @@ export default function Component(props: any) {
 
   useFocusEffect(
     useCallback(() => {
+      let timer = undefined;
       (async () => {
-        setNfcSupported(await NfcManager.isSupported());
-        setNfcEnabled(await NfcManager.isEnabled());
+        try {
+          const nfcSupported = await NfcManager.isSupported();
+          if (nfcSupported) {
+            setNfcEnabled(await NfcManager.isEnabled());
+            setInterval(async () => {
+              setNfcEnabled(await NfcManager.isEnabled());
+            }, 2000);
+          } else {
+            setNfcEnabled(false);
+          }
+        } catch (error) {
+          console.error('NFC Initial', error);
+          setNfcEnabled(false);
+        }
       })();
-      const timer = setInterval(async () => {
-        setNfcEnabled(await NfcManager.isEnabled());
-      }, 2000);
       return () => {
         clearInterval(timer);
         // 自动取消扫描

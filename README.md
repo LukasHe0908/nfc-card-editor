@@ -1,50 +1,25 @@
-# Welcome to your Expo app 👋
+# NFC Card Editor
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+It's designed for edit card's balance.
 
-1. Install dependencies
+## Datas
 
-   ```bash
-   npm install
-   ```
+2.60 0000010400002418FFFFFEFB027CDD00
 
-2. Start the app
+2.61 0000010500002417FFFFFEFA02788000
 
-   ```bash
-   npx expo start
-   ```
+0.00 000000000000251CFFFFFFFF0296FB00
 
-In the output, you'll find options to open the app in a
+16.0 0000064000006144FFFFF9BF01C33500
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+1.00 00000064000024B8FFFFFF9B028CFF00
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+16.27 0000065B00006129FFFFF9A401C28D00
 
-## Get a fresh project
+2.00 000000C800002454FFFFFF3702809E00
 
-When you're ready, run:
+0.00 0000000000000DACFFFFFFFF00619C00
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+0.00 0000000000001194FFFFFFFF0049F300

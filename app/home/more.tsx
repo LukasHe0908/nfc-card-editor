@@ -24,7 +24,7 @@ export function Component() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background, marginTop: safeAreaInsets.top }}>
       <View style={{ paddingHorizontal: 8, paddingVertical: 22, flex: 1, alignItems: 'center' }}>
-        <Image source={require('@/assets/icon.svg')} style={{ width: 100, height: 100 }} contentFit='contain' />
+        <Image source={require('@/assets/svgs/icon.svg')} style={{ width: 100, height: 100 }} contentFit='contain' />
       </View>
       <Divider style={{ height: 0.8 }} />
       <TouchableRipple rippleColor='rgba(0, 0, 0, .1)' onPress={() => {}}>
