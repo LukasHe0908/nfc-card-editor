@@ -13,7 +13,7 @@ export default function WritePage() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  async function fetchAmountOptions() {
+  async function fetchAmountOptions(force = false) {
     setLoadingAmountOptions(true);
     try {
       const cacheKey = 'amountOptionsCache';
@@ -25,7 +25,7 @@ export default function WritePage() {
       const now = Date.now();
       const cacheTimeMax = 60 * 60 * 1000;
 
-      if (cached && cachedTime && now - parseInt(cachedTime, 10) < cacheTimeMax) {
+      if (!force && cached && cachedTime && now - parseInt(cachedTime, 10) < cacheTimeMax) {
         setAmountOptions(JSON.parse(cached));
         setLoadingAmountOptions(false);
         return;
@@ -283,7 +283,10 @@ export default function WritePage() {
 
           {/* 金额选择 */}
           <Surface style={styles.card} elevation={1}>
-            <Text style={styles.sectionTitle}>金额</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.sectionTitle}>金额</Text>
+              <Button compact onPress={() => fetchAmountOptions(true)}>刷新</Button>
+            </View>
             {loadingAmountOptions ? (
               <ActivityIndicator />
             ) : (
