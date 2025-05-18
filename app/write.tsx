@@ -71,7 +71,7 @@ export default function WritePage() {
     {
       key: 'fix',
       label: '修复',
-      icon: 'construct-outline',
+      icon: 'tools',
       description: '适用于新卡写入一半失败。',
     },
   ];
@@ -178,7 +178,7 @@ export default function WritePage() {
       }
 
       // setSnackbarText(`写入成功: ${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
-      setSnackbarText(`写入成功:\n${JSON.stringify(optionMatches, null, 2)}`);
+      setSnackbarText(`写入成功:\n${JSON.stringify(result_json, null, 2)}`);
     } catch (error: any) {
       console.error(error);
       setSnackbarText(`写入失败，请重试: ${error}`);
