@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { writeMifareClassicBlocks } from '@/components/mifareClassic';
+import { writeMifareClassicBlocksWithKeys } from '@/components/mifareClassic';
 import { AESTool } from '@/components/crypt';
 
 export default function WritePage() {
@@ -68,6 +68,12 @@ export default function WritePage() {
       icon: 'credit-card-chip-outline',
       description: '适用于未写入过数据卡片，例如新生成的空白卡。需要选择用户ID。',
     },
+    {
+      key: 'fix',
+      label: '修复',
+      icon: 'construct-outline',
+      description: '适用于新卡写入一半失败。',
+    },
   ];
 
   const [nfcEnabled, setNfcEnabled] = useState(true);
@@ -120,7 +126,6 @@ export default function WritePage() {
     setWriting(true);
 
     try {
-      const sector = 7;
       let optionMatches = amountOptions.find((item: any) => {
         return item.key === amount;
       });
@@ -142,16 +147,32 @@ export default function WritePage() {
           .match(/.{1,2}/g)!
           .map((x: string) => parseInt(x, 16));
 
-        await writeMifareClassicBlocks(sector, key, {
-          0: block0Bytes,
-          1: bytes,
-          2: bytes,
-          3: authBlock,
+        await writeMifareClassicBlocksWithKeys({
+          7: {
+            keyA: key,
+            blocks: {
+              0: block0Bytes,
+              1: bytes,
+              2: bytes,
+              3: authBlock,
+            },
+          },
+          8: {
+            keyA: key,
+            blocks: {
+              3: authBlock,
+            },
+          },
         });
       } else {
-        await writeMifareClassicBlocks(sector, key, {
-          1: bytes,
-          2: bytes,
+        await writeMifareClassicBlocksWithKeys({
+          7: {
+            keyA: key,
+            blocks: {
+              1: bytes,
+              2: bytes,
+            },
+          },
         });
       }
 
@@ -183,7 +204,7 @@ export default function WritePage() {
           )}
           {/* 卡片类型选择 */}
           <Surface style={styles.card} elevation={1}>
-            <Text style={styles.sectionTitle}>卡片类型</Text>
+            <Text style={styles.sectionTitle}>写入类型</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionRow}>
               {cardOptions.map(item => {
                 const isSelected = cardType === item.key;
