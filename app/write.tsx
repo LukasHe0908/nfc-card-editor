@@ -129,6 +129,7 @@ export default function WritePage() {
       let optionMatches = amountOptions.find((item: any) => {
         return item.key === amount;
       });
+      let result_json = {};
 
       const hexString: string = optionMatches.data;
       const bytes = hexString.match(/.{1,2}/g)!.map(x => parseInt(x, 16));
@@ -147,7 +148,7 @@ export default function WritePage() {
           .match(/.{1,2}/g)!
           .map((x: string) => parseInt(x, 16));
 
-        await writeMifareClassicBlocksWithKeys({
+        result_json = await writeMifareClassicBlocksWithKeys({
           7: {
             keyA: key,
             blocks: {
@@ -165,7 +166,7 @@ export default function WritePage() {
           },
         });
       } else {
-        await writeMifareClassicBlocksWithKeys({
+        result_json = await writeMifareClassicBlocksWithKeys({
           7: {
             keyA: key,
             blocks: {
@@ -176,7 +177,8 @@ export default function WritePage() {
         });
       }
 
-      setSnackbarText(`写入成功: ${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
+      // setSnackbarText(`写入成功: ${amount?.toFixed(2)} 到 ${selectedCard?.label}`);
+      setSnackbarText(`写入成功:\n${JSON.stringify(optionMatches, null, 2)}`);
     } catch (error: any) {
       console.error(error);
       setSnackbarText(`写入失败，请重试: ${error}`);
