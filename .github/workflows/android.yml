@@ -25,7 +25,7 @@ jobs:
             **/node_modules
           key: ${{ runner.os }}-node-modules
           restore-keys: |
-            ${{ runner.os }}-node-modules-
+            ${{ runner.os }}-node-modules
 
       - name: Install JavaScript dependencies
         run: yarn install
