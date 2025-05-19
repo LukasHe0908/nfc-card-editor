@@ -1,0 +1,66 @@
+name: Android Release (Auto on Tag)
+
+on:
+  push:
+    tags:
+      - 'v*'  # 监听所有以 v 开头的 tag，比如 v1.0.0
+  workflow_dispatch:  # 也保留手动触发入口
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-modules
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Install JavaScript dependencies
+        run: yarn install
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+        working-directory: android
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+        working-directory: android
+
+      - name: Upload all release APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-apks
+          path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Create GitHub Release and Upload APKs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
