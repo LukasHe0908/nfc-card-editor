@@ -12,6 +12,7 @@ export async function readMifareClassicBlock(
       await NfcManager.cancelTechnologyRequest();
     }
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    await NfcManager.setTimeout(1000);
     const tagInfo = await NfcManager.getTag();
 
     const mifare = NfcManager.mifareClassicHandlerAndroid;
@@ -62,6 +63,7 @@ export async function writeMifareClassicBlocks(
       await NfcManager.cancelTechnologyRequest();
     }
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    await NfcManager.setTimeout(5000);
 
     const mifare = NfcManager.mifareClassicHandlerAndroid;
     const blockStart = await mifare.mifareClassicSectorToBlock(sectorIndex);
@@ -116,6 +118,7 @@ export async function readMifareClassicBlocksWithKeys(
     }
 
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    await NfcManager.setTimeout(1000);
     const tagInfo = await NfcManager.getTag();
     const mifare = NfcManager.mifareClassicHandlerAndroid;
     const result: { [sectorIndex: number]: number[][] | string } = {};
@@ -171,6 +174,7 @@ export async function writeMifareClassicBlocksWithKeys(
     }
 
     await NfcManager.requestTechnology(NfcTech.MifareClassic);
+    await NfcManager.setTimeout(5000);
     const mifare = NfcManager.mifareClassicHandlerAndroid;
     const writeResults: { [sectorIndex: number]: string } = {};
 
