@@ -1,4 +1,4 @@
-name: Android Release (with debug keystore, no Sentry)
+name: Android Debug
 
 on:
   workflow_dispatch:
@@ -6,21 +6,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Enable Corepack and install Yarn
-        run: |
-          corepack enable
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Install JS dependencies
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Install JavaScript dependencies
         run: yarn install
 
       - name: Set up JDK
@@ -32,27 +39,21 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Gradle (with caching)
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 8.13  # 可选，或让项目自动检测
-          cache-read-only: false
-
-      - name: Grant execute permission to gradlew
+      - name: Make gradlew executable
         run: chmod +x gradlew
         working-directory: android
 
-      - name: Build release APK without Sentry
+      - name: Build release APK (without Sentry)
         run: ./gradlew assembleRelease
         working-directory: android
 
-      - name: Upload all APKs
+      - name: Upload all release APKs
         uses: actions/upload-artifact@v4
         with:
           name: all-apks
           path: android/app/build/outputs/apk/release/*.apk
 
-      - name: Upload arm64-only APK
+      - name: Upload arm64-v8a APK only
         uses: actions/upload-artifact@v4
         with:
           name: arm64-apk
