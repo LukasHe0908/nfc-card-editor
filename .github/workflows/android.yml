@@ -43,7 +43,7 @@ jobs:
         run: chmod +x gradlew
         working-directory: android
 
-      - name: Build release APK (without Sentry)
+      - name: Build release APK
         run: ./gradlew assembleRelease
         working-directory: android
 
