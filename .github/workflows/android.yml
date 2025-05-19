@@ -23,7 +23,7 @@ jobs:
         with:
           path: |
             **/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node-modules
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
