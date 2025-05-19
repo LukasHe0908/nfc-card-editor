@@ -28,10 +28,13 @@ jobs:
             **/node_modules
           key: ${{ runner.os }}-node-modules
           restore-keys: |
-            ${{ runner.os }}-node-modules-
+            ${{ runner.os }}-node-modules
 
       - name: Install JavaScript dependencies
         run: yarn install
+
+      - name: Run prebuild
+        run: yarn b
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -59,4 +62,3 @@ jobs:
           overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
