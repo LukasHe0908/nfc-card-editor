@@ -52,18 +52,20 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleRelease
         working-directory: android
-
-      - name: Delete existing release if exists
-        run: |
-          gh release delete ${{ github.ref_name }} --yes || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release and Upload APKs
-        uses: softprops/action-gh-release@v2
+      
+      - name: Delete existing release
+        uses: cb80/delrel@latest
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          files: android/app/build/outputs/apk/release/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload APKs to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: android/app/build/outputs/apk/release/*.apk
+          file_glob: true
+          tag: ${{ github.ref_name }}
+          overwrite: true
+          body: "Release from commit ${{ github.sha }}"
+          release_name: "Release ${{ github.ref_name }}"
